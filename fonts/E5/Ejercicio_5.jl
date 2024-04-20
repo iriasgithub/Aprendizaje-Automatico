@@ -89,18 +89,22 @@ function ANNCrossValidation(topology::AbstractArray{<:Int,1},
     v_precision = zeros(folds) 
     v_NPV = zeros(folds) 
     v_f1_score = zeros(folds)
+    v_confusion_matrices = []
 
+    classes = length(unique(targets))
     targets = oneHotEncoding(targets)
+
+    
     for fold in 1:folds
         #Creacion de las variables de entrada y salida deseada para entrenamiento y test a partir de los índices.
         train_indices = findall(x -> x != fold, crossValidationIndices)
         test_indices = findall(x -> x == fold, crossValidationIndices)
         
         train_inputs = inputs[train_indices, :]
-        train_targets = targets[train_indices]
+        train_targets = targets[train_indices, :]
         test_inputs = inputs[test_indices, :]
-        test_targets = targets[test_indices]
-
+        test_targets = targets[test_indices, :]
+        
         #CÁLCULO DE LOS PARÁMETROS DE NORMALIZACIÓN EN BASE ÚNICAMENE A LOS TRAIN_INPUTS DE ESTE FOLD:
         normalizationParameters = calculateMinMaxNormalizationParameters(train_inputs)
         normalizeMinMax!(train_inputs, normalizationParameters)
@@ -131,14 +135,23 @@ function ANNCrossValidation(topology::AbstractArray{<:Int,1},
                 validationDataset = (train_inputs[val_index, :], train_targets[val_index, :])
                 (ann, _, _, _) = trainClassANN(topology, trainingDataset; transferFunctions, maxEpochs, minLoss, learningRate, validationDataset, testDataset, maxEpochsVal)
                 test_outputs = ann(test_inputs')'
+                
             else
                 trainingDataset = (train_inputs, train_targets)
                 (ann, _) = trainClassANN(topology, trainingDataset; transferFunctions, maxEpochs, minLoss, learningRate)
                 test_outputs = ann(test_inputs')'
             end
-            (v_train_accuracy[execution], v_train_error_rate[execution], v_train_recall[execution],
-            v_train_specificity[execution], v_train_precision[execution], v_train_NPV[execution], v_train_f1_score[execution], _) = 
-            confusionMatrix(vec(test_outputs), vec(test_targets))
+
+            if(classes > 2)
+                (v_train_accuracy[execution], v_train_error_rate[execution], v_train_recall[execution],
+                v_train_specificity[execution], v_train_precision[execution], v_train_NPV[execution], v_train_f1_score[execution], matriz_confusion) = 
+                confusionMatrix(test_outputs, test_targets)
+            else
+                (v_train_accuracy[execution], v_train_error_rate[execution], v_train_recall[execution],
+                v_train_specificity[execution], v_train_precision[execution], v_train_NPV[execution], v_train_f1_score[execution], matriz_confusion) = 
+                confusionMatrix(vec(test_outputs), vec(test_targets))
+            end
+            push!(v_confusion_matrices, matriz_confusion)
         end
 
         v_accuracy[fold] = mean(v_train_accuracy)
@@ -149,6 +162,9 @@ function ANNCrossValidation(topology::AbstractArray{<:Int,1},
         v_NPV[fold] = mean(v_train_NPV)
         v_f1_score[fold] = mean(v_train_f1_score)
     end
+
+    avg_confusion_matrix = (sum(v_confusion_matrices) / folds) / numExecutions
+    println(avg_confusion_matrix)
 
     return((mean(v_accuracy), std(v_accuracy)),(mean(v_error_rate), std(v_error_rate)),(mean(v_recall), std(v_recall)),
     (mean(v_specificity), std(v_specificity)),(mean(v_precision), std(v_precision)),(mean(v_NPV), std(v_NPV)),(mean(v_f1_score), std(v_f1_score)))

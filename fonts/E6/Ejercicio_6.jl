@@ -58,6 +58,7 @@ function modelCrossValidation(modelType::Symbol, modelHyperparameters::Dict,
         v_precision = zeros(folds) 
         v_NPV = zeros(folds) 
         v_f1_score = zeros(folds)
+        v_confusion_matrices = []
         #Transformación del vector de salidas deseadas a un vector de cadenas de texto
         targets = string.(targets); 
         #Creación del modelo correspondiente
@@ -79,32 +80,35 @@ function modelCrossValidation(modelType::Symbol, modelHyperparameters::Dict,
             train_inputs = inputs[train_indices, :]
             train_targets = targets[train_indices]
             test_inputs = inputs[test_indices, :]
+            
             test_targets = targets[test_indices]
             #Entrenar el modelo (solo una vez porque son modelos determinísticos)
 
             fit!(model, train_inputs, train_targets)
             #Aplicar conjunto de test
             test_outputs = predict(model, test_inputs)
-            test_outputs = cadena_a_bool.(test_outputs)
-            test_targets = cadena_a_bool.(test_targets)
+            
+            test_outputs = oneHotEncoding(test_outputs, unique(targets))
+            test_targets = oneHotEncoding(test_targets, unique(targets))
+
             #Calcular métricas
-            (v_accuracy[fold], v_error_rate[fold], v_recall[fold],
-            v_specificity[fold], v_precision[fold], v_NPV[fold], v_f1_score[fold], _) = 
-            confusionMatrix(vec(test_outputs), vec(test_targets))
+            if(length(unique(targets)) > 2)
+                (v_accuracy[fold], v_error_rate[fold], v_recall[fold],
+                v_specificity[fold], v_precision[fold], v_NPV[fold], v_f1_score[fold], matriz_confusion) = 
+                confusionMatrix(test_outputs, test_targets)
+            else
+                (v_accuracy[fold], v_error_rate[fold], v_recall[fold],
+                v_specificity[fold], v_precision[fold], v_NPV[fold], v_f1_score[fold], matriz_confusion) = 
+                confusionMatrix(vec(test_outputs), vec(test_targets))
+            end
+
+            push!(v_confusion_matrices, matriz_confusion)
             
         end
+        avg_confusion_matrix = sum(v_confusion_matrices) / folds
+        println(avg_confusion_matrix)
+
         return((mean(v_accuracy), std(v_accuracy)),(mean(v_error_rate), std(v_error_rate)),(mean(v_recall), std(v_recall)),
         (mean(v_specificity), std(v_specificity)),(mean(v_precision), std(v_precision)),(mean(v_NPV), std(v_NPV)),(mean(v_f1_score), std(v_f1_score)))
-    end
-end
-
-#Funciones para normalización
-function cadena_a_bool(cadena::String)
-    if cadena == "true"
-        return true
-    elseif cadena == "false"
-        return false
-    else
-        error("La cadena debe ser 'true' o 'false'")
     end
 end

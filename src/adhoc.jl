@@ -49,6 +49,16 @@ function cargar_imagenes(clase::String, formato::String, toGray::Bool)
     end
 end
 
+function crear_inputs_targets_binarias(clase1::Vector{Matrix{Float64}}, clase2::Vector{Matrix{Float64}}, index::Vector{Int64})
+
+    clases = vcat(clase1, clase2)
+    targets = vcat(falses(length(clase1)), trues(length(clase2)))
+    clases = clases[index]
+    targets = targets[index]
+
+    return clases, targets
+end
+
 function crear_inputs_targets_binarias(clase1::Vector{Any}, clase2::Vector{Any}, index::Vector{Int64})
 
     clases = vcat(clase1, clase2)
@@ -59,18 +69,18 @@ function crear_inputs_targets_binarias(clase1::Vector{Any}, clase2::Vector{Any},
     return clases, targets
 end
 
-
 function crear_inputs_targets_multiclase(clase1::Vector{Any}, clase2::Vector{Any}, clase3::Vector{Any}, index::Vector{Int64})
     l1, l2, l3 = length(clase1), length(clase2), length(clase3)
     cod1 = fill("melanoma", l1)
     cod2 = fill("no_melanoma", l2)
     cod3 = fill("atypical_nevus", l3)
-    inputs = vcat(cod1, cod2, cod3)
-    targets = oneHotEncoding(inputs, ["melanoma", "no_melanoma", "atypical_nevus"])
+    inputs = vcat(cod1, cod2, cod3) 
+    targets = inputs[index, :]
+    #targets = oneHotEncoding(inputs, ["melanoma", "no_melanoma", "atypical_nevus"])
     inputs = vcat(clase1, clase2, clase3)[index]
-    targets = targets[index, :]
+   
 
-    return inputs, targets
+    return inputs, vec(targets)
 end
 
 function crear_inputs_targets_multiclase(clase1::Vector{Matrix{Float64}}, clase2::Vector{Matrix{Float64}}, clase3::Vector{Matrix{Float64}}, index::Vector{Int64})

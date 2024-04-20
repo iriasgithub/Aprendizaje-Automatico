@@ -90,6 +90,7 @@ function modelCrossValidation(modelType::Symbol, modelHyperparameters::Dict,
             
             test_outputs = oneHotEncoding(test_outputs, unique(targets))
             test_targets = oneHotEncoding(test_targets, unique(targets))
+            println(unique(targets))
 
             #Calcular métricas
             if(length(unique(targets)) > 2)

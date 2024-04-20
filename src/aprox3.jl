@@ -39,7 +39,6 @@ scatter!(datos_clase_1[:, 4], datos_clase_1[:, 2], xlabel = "Color", ylabel = "A
 
 ########################################################################################################################
 
-
 #Ejecución de SVM
 C_val = [0.1, 1, 10, 100]
 kernel_val = ["linear", "poly", "rbf" , "sigmoid"]

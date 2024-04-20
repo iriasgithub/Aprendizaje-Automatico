@@ -95,9 +95,6 @@ function execute_ARB(profundidades::Vector{Int64}, inputs::AbstractArray{<:Real,
         args = Dict("max_depth" => prof)
         println("Entrenar y evaluar con el valor de max_depth : ", prof)
 
-        println(targets)
-        println(vec(targets))
-
         # Entrenar y evaluar el modelo con la configuración actual
         ((_,_), (_,_), (_,_), (_,_), (_,_), (_,_), (mean_f1_score, std_f1_score)) = 
         modelCrossValidation(:DecisionTreeClassifier, args, inputs, vec(targets), crossvalidation(targets, 10))

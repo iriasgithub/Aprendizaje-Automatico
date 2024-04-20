@@ -76,10 +76,8 @@ function crear_inputs_targets_multiclase(clase1::Vector{Any}, clase2::Vector{Any
     cod3 = fill("atypical_nevus", l3)
     inputs = vcat(cod1, cod2, cod3) 
     targets = inputs[index, :]
-    #targets = oneHotEncoding(inputs, ["melanoma", "no_melanoma", "atypical_nevus"])
     inputs = vcat(clase1, clase2, clase3)[index]
    
-
     return inputs, vec(targets)
 end
 

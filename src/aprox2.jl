@@ -45,7 +45,6 @@ color=:red, label="Melanoma")
 
 ########################################################################################################################
 
-#=
 #Ejecución de SVM
 C_val = [0.1, 1, 10, 100]
 kernel_val = ["linear", "poly", "rbf" , "sigmoid"]
@@ -56,7 +55,6 @@ configuraciones = collect(producto_cartesiano)
 (max_mean_f1_SVM, best_config) = execute_SVM(configuraciones, dataset, targets)
 println(max_mean_f1_SVM, best_config)
 ########################################################################################################################
-
 
 #Ejecución de DT
 profundidades = [2, 3, 4, 5, 8, 9, 16]
@@ -72,7 +70,6 @@ K = [1, 3, 5, 7, 9, 11]
 println(max_mean_f1_KNN, best_k)
 ########################################################################################################################
 
-=#
 #Ejecución de ANN
 topologias = [[8, 8]]
 

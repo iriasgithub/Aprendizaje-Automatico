@@ -122,62 +122,43 @@ function normalizeZeroMean!(dataset::AbstractArray{<:Real,2},
     dataset .= (dataset .- normalizationParameters[1]) ./ normalizationParameters[2]
 end
 
-#outputs: vector con las salidas de un modelo que emite una única salida para un problema de clasificación binaria
-#threshold: umbral que define la pertenencia a una clase u otra.
-function classifyOutputs(outputs::AbstractArray{<:Real,1}; threshold::Real=0.5) 
-    return outputs .>= threshold
-end
+function classifyOutputs(outputs::AbstractArray{<:Real,2}; threshold::Float64=0.5)
+    numOutputs = size(outputs, 2);
 
-#outputs: matriz con las salidas y un patrón en cada fila.
-function classifyOutputs(outputs::AbstractArray{<:Real,2}; threshold::Real=0.5)
-    n_rows, n_classes = size(outputs)
-    if n_classes == 1
-        boolean_vector = classifyOutputs(outputs[:]; threshold = threshold)
-        boolean_matrix = reshape(boolean_vector, (n_rows, 1))
-    elseif n_classes > 1
-        (_, indicesMaxEachInstance) = findmax(outputs, dims=2)
-        boolean_matrix = falses(size(outputs))
-        boolean_matrix[indicesMaxEachInstance] .= true
-    end
-    return boolean_matrix
-end 
-
-#targets: salidas deseadas con un patrón en cada fila
-#outputs: salidas emitidas para un modelo con un patrón en cada fila
-function accuracy(outputs::AbstractArray{Bool,1}, targets::AbstractArray{Bool,1})
-    @assert (size(outputs,1) == size(targets,1)) "Las matrices de salidas deseadas y salidas emitidas deben tener el mismo número de filas"
-    boolean_matrix = outputs .== targets
-    return mean(boolean_matrix)
-end
-
-function accuracy(outputs::AbstractArray{Bool,2}, targets::AbstractArray{Bool,2}) 
-    @assert (size(outputs,1) == size(targets,1)) "Las matrices de salidas deseadas y salidas emitidas deben tener el mismo número de filas"
-    n_classes = size(outputs,2)
-    if n_classes == 1
-        accuracy = accuracy(outputs[:,1], targets[:,1])
-    elseif n_classes > 2 
-        classComparison = targets .== outputs 
-        correctClassifications = all(classComparison, dims=2)
-        accuracy = mean(correctClassifications)
-    end
-    return accuracy
-end
-
-function accuracy(outputs::AbstractArray{<:Real,1}, targets::AbstractArray{Bool,1};
-    threshold::Real=0.5) 
-    accuracy = accuracy(outputs .>= threshold, targets)
-    return accuracy
-end
-
-function accuracy(outputs::AbstractArray{<:Real,2}, targets::AbstractArray{Bool,2};
-    threshold::Real=0.5) 
-    if size(outputs, 2) == 1
-        return accuracy(targets[:,1], outputs[:,1])
+    if numOutputs==1
+        return convert(Array{Bool,2}, outputs.>=threshold);
     else
-        return accuracy(targets, classifyOutputs(outputs))
-    end
-end
+        (_,indicesMaxEachInstance) = findmax(outputs, dims= 2);
+        outputsBool = Array{Bool,2}(falses(size(outputs)));
+        outputsBool[indicesMaxEachInstance] .= true;
+        @assert(all(sum(outputsBool, dims=2).==1));
+        return outputsBool;
+    end;
+end;
 
+accuracy(outputs::AbstractArray{Bool,1}, targets::AbstractArray{Bool,1}) = mean(outputs.==targets);
+
+function accuracy(outputs::AbstractArray{Bool,2}, targets::AbstractArray{Bool,2})
+    @assert(all(size(outputs).==size(targets)));
+    if (size(targets,2)==1)
+        return accuracy(outputs[:,1], targets[:,1]);
+    else
+        classComparison = targets .== outputs
+        correctClassifications = all(classComparison, dims=2)
+        return mean(correctClassifications)
+    end;
+end;
+
+accuracy(outputs::AbstractArray{<:Real,1}, targets::AbstractArray{Bool,1}; threshold::Float64=0.5) = accuracy(AbstractArray{Bool,1}(outputs.>=threshold), targets);
+
+function accuracy(outputs::AbstractArray{<:Real,2}, targets::AbstractArray{Bool,2})
+    @assert(all(size(outputs).==size(targets)));
+    if (size(targets,2)==1)
+        return accuracy(outputs[:,1], targets[:,1]);
+    else
+        return accuracy(classifyOutputs(outputs), targets);
+    end;
+end;
 
 using Flux
 using Flux.Losses

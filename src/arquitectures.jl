@@ -61,6 +61,31 @@ ann4 = Chain(
 
     MaxPool((2,2)),
 
+    Conv((3, 3), 16=>32, pad=(1,1), relu),
+
+    MaxPool((2,2)),
+
+    Conv((3, 3), 32=>32, pad=(1,1), relu),
+
+    MaxPool((2,2)),
+
+    x -> reshape(x, :, size(x, 4)),
+
+    Dense(32, 3),
+
+    softmax
+)
+
+ann5 = Chain(
+
+    Conv((3, 3), 3=>8, pad=(1,1), relu),
+
+    MaxPool((2,2)),
+
+    Conv((3, 3), 8=>16, pad=(1,1), relu),
+
+    MaxPool((2,2)),
+
     Conv((3, 3), 16=>16, pad=(1,1), relu),
 
     MaxPool((2,2)),
@@ -72,7 +97,7 @@ ann4 = Chain(
     softmax
 )
 
-ann5 = Chain(
+ann6 = Chain(
 
     Conv((3, 3), 3=>8, pad=(1,1), relu),
 
@@ -89,7 +114,7 @@ ann5 = Chain(
     softmax
 )
 
-ann6 = Chain(
+ann7 = Chain(
 
     Conv((3, 3), 3=>8, pad=(1,1), relu),
 
@@ -102,7 +127,7 @@ ann6 = Chain(
     softmax
 )
 
-ann7 = Chain(
+ann8 = Chain(
 
     Conv((3, 3), 3=>4, pad=(1,1), relu),
 
@@ -123,7 +148,7 @@ ann7 = Chain(
     softmax
 )
 
-ann8 = Chain(
+ann9 = Chain(
 
     Conv((3, 3), 3=>4, pad=(1,1), relu),
 
@@ -140,7 +165,7 @@ ann8 = Chain(
     softmax
 )
 
-ann9 = Chain(
+ann10 = Chain(
 
     Conv((3, 3), 3=>4, pad=(1,1), relu),
 
@@ -153,25 +178,25 @@ ann9 = Chain(
     softmax
 )
 
-ann10 = Chain(
+ann11 = Chain(
 
     Conv((5, 5), 3=>16, pad=(1,1), relu),
 
     MaxPool((2,2)),
 
-    Conv((3, 3), 16=>32, pad=(1,1), relu),
+    Conv((5, 5), 16=>32, pad=(1,1), relu),
 
     MaxPool((2,2)),
 
-    Conv((3, 3), 32=>32, pad=(1,1), relu),
+    Conv((5, 5), 32=>32, pad=(1,1), relu),
 
     MaxPool((2,2)),
     
     x -> reshape(x, :, size(x, 4)),
 
-    Dense(288, 3),
+    Dense(128, 3),
 
     softmax
 )
 
-arquitecturas = [ann1, ann2, ann3, ann4, ann5, ann6, ann7, ann8, ann9, ann10]
+arquitecturas = [ann1, ann2, ann3, ann4, ann5, ann6, ann7, ann8, ann9, ann10, ann11]

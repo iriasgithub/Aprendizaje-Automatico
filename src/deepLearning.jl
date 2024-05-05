@@ -34,6 +34,7 @@ inputs_color, targets = crear_inputs_targets_multiclase(no_melanoma_color, melan
 
 ruta_destino = "resized_images"*sep
 ruta_destino2 = "images"*sep
+
 #Resize imagenes al mismo tamaño
 #=
 for i in 1:length(inputs_color)
@@ -108,10 +109,7 @@ function train(ann)
     numCicloUltimaMejora = 0;
     mejorModelo = nothing;
 
-    while !criterioFin
-
-        # Hay que declarar las variables globales que van a ser modificadas en el interior del bucle
-        #global numCicloUltimaMejora, numCiclo, mejorPrecision, mejorModelo, criterioFin;
+    while !criterioFin       
     
         # Se entrena un ciclo
         Flux.train!(loss, ann, [train_set], opt_state);
@@ -119,15 +117,16 @@ function train(ann)
         numCiclo += 1;
     
         # Se calcula la precision en el conjunto de entrenamiento:
-    
-        precisionEntrenamiento = accuracy(ann(train_set[1])', train_set[2]')
-        #println("Ciclo ", numCiclo, ": Precision en el conjunto de entrenamiento: ", 100*precisionEntrenamiento, " %");
+
+        (_, _, _, _, _, _, precisionEntrenamiento, _) = confusionMatrix(ann(train_set[1])', train_set[2]')
+        #println("Ciclo ", numCiclo, ": F1 en el conjunto de entrenamiento: ", 100*precisionEntrenamiento, " %");
     
         # Si se mejora la precision en el conjunto de entrenamiento, se calcula la de test y se guarda el modelo
         if (precisionEntrenamiento > mejorPrecision)
             mejorPrecision = precisionEntrenamiento;
-            precisionTest = mean(onecold(ann(test_set[1])) .== onecold(test_set[2]));
-            #println("   Mejora en el conjunto de entrenamiento -> Precision en el conjunto de test: ", 100*precisionTest, " %");
+            #precisionTest = mean(onecold(ann(test_set[1])) .== onecold(test_set[2]));
+            (_, _, _, _, _, _, precisionTest, _) = confusionMatrix(ann(test_set[1])', test_set[2]');
+            #println("   Mejora en el conjunto de entrenamiento -> F1 en el conjunto de test: ", 100*precisionTest, " %");
             mejorModelo = deepcopy(ann);
             numCicloUltimaMejora = numCiclo;
         end
@@ -136,15 +135,16 @@ function train(ann)
     
         # Si la precision en entrenamiento es lo suficientemente buena, se para el entrenamiento
         if (precisionEntrenamiento >= 0.999)
-            println("   Se para el entenamiento por haber llegado a una precision de 99.9%")
+            println("   Se para el entenamiento por haber llegado a un F1 de 99.9%")
             criterioFin = true;
             return precisionTest
         end
     
         # Si no se mejora la precision en el conjunto de entrenamiento durante 10 ciclos, se para el entrenamiento
-        if (numCiclo - numCicloUltimaMejora >= 15)
-            precisionTest = mean(onecold(ann(test_set[1])) .== onecold(test_set[2]));
-            println("   Se para el entrenamiento por no haber mejorado la precision en el conjunto de entrenamiento durante 15 ciclos con una precisión en test de ", 100*precisionTest, " %")
+        if (numCiclo - numCicloUltimaMejora >= 20)
+            (_, _, _, _, _, _, precisionTest, _) = confusionMatrix(ann(test_set[1])', test_set[2]');
+            println("   Se para el entrenamiento por no haber mejorado el F1 en el conjunto de entrenamiento durante 20 ciclos con un F1 en test de ", 100*precisionTest, " % y en
+            entrenamiento de ", 100*precisionEntrenamiento, " %")
             criterioFin = true;
             return precisionTest
         end
@@ -156,5 +156,3 @@ end
 results = [train(ann) for ann in arquitecturas]
 
 println(results)
-
-

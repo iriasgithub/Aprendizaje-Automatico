@@ -119,9 +119,8 @@ function create_bounding_box(image::Matrix{Float64})
 
     indices = boundingBoxes[1]
 
-    # Obtenemos los límites de los índices
-    x1, y1 = Tuple(indices[1])  # Límite superior izquierdo
-    x2, y2 = Tuple(indices[end])  # Límite inferior derecho
+    x1, y1 = Tuple(indices[1])  
+    x2, y2 = Tuple(indices[end])  
 
     imagenRgb[ x1:x2 , y1 ] .= RGB(0,1,0);
     imagenRgb[ x1:x2 , y2 ] .= RGB(0,1,0);
@@ -157,9 +156,9 @@ function extract_asymmetry(image::Matrix{Float64}, indexes::NTuple{4, Int64})
         part1 = bounded_image[:, 1:median_index]
         part2_reversed = reverse(bounded_image[:, median_index+1:end])
     else 
-        median_index = div(num_columns, 2) + 1 # Corrección: punto medio menos uno
+        median_index = div(num_columns, 2) + 1 
         part1 = bounded_image[:, 1:median_index]
-        part2_reversed = reverse(bounded_image[:, median_index:end]) # Corrección: añadir uno al índice mediano    
+        part2_reversed = reverse(bounded_image[:, median_index:end])    
     end
     asimmetry = sum(abs.(part1 .- part2_reversed))
     return asimmetry
@@ -178,15 +177,15 @@ function calcular_area_poligono(convex_hull_points)
     return abs(area)/2
 end
 
-#Mejora de la característica de irregularidad mediante convex hulls
+# Mejora de la característica de irregularidad mediante convex hulls
 function extract_irregularity(image::Matrix{Float64})
     
     convex_hull_points = convexhull(Bool.(image))
     convex_hull_points = [(index[1], index[2]) for index in convex_hull_points]
     
-    #Calcular el área del convex hull 
+    # Calcular el área del convex hull 
     convex_hull_area = calcular_area_poligono(convex_hull_points)
-    #Calcular el área de la máscara binaria
+    # Calcular el área de la máscara binaria
     binary_area = sum(image)
 
     irregularity = convex_hull_area / binary_area
@@ -234,16 +233,14 @@ function extract_border_length(image::Matrix{Float64})
 end
 
 function aplicar_mascara(imagen::Matrix{RGB{N0f8}}, mascara::Array{Float64, 2}) #
-    # Creamos una copia de la imagen para no modificar la original
     imagen_mascarada = copy(imagen)
     
-    # Aplicamos la máscara
     for i in 1:size(imagen, 1)
         for j in 1:size(imagen, 2)
             if mascara[i, j] == 1.0
                 imagen_mascarada[i, j] = imagen[i, j]
             else
-                imagen_mascarada[i, j] = RGB{N0f8}(0, 0, 0)  # Seteamos el pixel a negro
+                imagen_mascarada[i, j] = RGB{N0f8}(0, 0, 0) 
             end
         end
     end
@@ -282,7 +279,6 @@ function extract_mean_color_pixels_value(image::AbstractMatrix, binary_mask::Abs
     green = array_pixeles[2, :, :]
     blue = array_pixeles[3, :, :]
 
-    # Calcular la media del valor de los píxeles en la ROI
     media_red = calcular_media_sin_ceros(red)
     media_green = calcular_media_sin_ceros(green)
     media_blue = calcular_media_sin_ceros(blue)
@@ -299,48 +295,35 @@ end
 #inputs: vector de imágenes bmp
 #axis: coordenadas de las bounding boxes de cada imagen
 function extraer_caracteristicas_aprox1(inputs::Vector{Matrix{Float64}}, axis::Vector{Any}) 
-    # Se inicializa un AbstractArray vacío para almacenar las características de las imágenes
     dataset = []
-    # Se itera sobre cada imagen en tu conjunto de imágenes
     for (image, ax) in zip(inputs, axis)
-        # Se calculan las características para la imagen actual
         attribute_1 = extract_regularity(image, ax)
         attribute_2 = extract_asymmetry(image, ax)
-        # Se añaden las características a la matriz
         push!(dataset, [attribute_1, attribute_2])
     end
     return hcat(dataset...)'
 end
 
 function extraer_caracteristicas_aprox2(inputs_bmp::Vector{Matrix{Float64}}, inputs_gray::Vector{Matrix{Float64}}, axis::Vector{Any}) 
-    # Se inicializa un AbstractArray vacío para almacenar las características de las imágenes
     dataset = []
-    # Se itera sobre cada imagen en tu conjunto de imágenes
     for (image_binary, image_gray, ax) in zip(inputs_bmp, inputs_gray, axis)
-    # Se calculan las características para la imagen actual
-    # attribute_1 = extract_irregularity(image_binary)
     attribute_1 = extract_border_length(image_binary)
     attribute_2 = extract_asymmetry(image_binary, ax)
     attribute_3 = extract_mean_pixels_value(image_gray, image_binary)
 
-    # Se añaden las características a la matriz
     push!(dataset, [attribute_1, attribute_2, attribute_3])
     end
     return hcat(dataset...)'
 end
 
 function extraer_caracteristicas_aprox3(inputs_bmp::Vector{Matrix{Float64}}, inputs_gray::Vector{Matrix{Float64}}, inputs_color::Vector{Any}, axis::Vector{Any}) 
-    # Se inicializa un AbstractArray vacío para almacenar las características de las imágenes
     dataset = []
-    # Se itera sobre cada imagen en tu conjunto de imágenes
     for (image_binary, image_gray, image_color, ax) in zip(inputs_bmp, inputs_gray, inputs_color, axis)
-    # Se calculan las características para la imagen actual
     attribute_1 = extract_border_length(image_binary)
     attribute_2 = extract_asymmetry(image_binary, ax)
     attribute_3 = extract_mean_pixels_value(image_gray, image_binary)
     attribute_4 = extract_mean_color_pixels_value(image_color, image_binary)
     
-    # Se añaden las características a la matriz
     push!(dataset, [attribute_1, attribute_2, attribute_3, attribute_4])
     end
     return hcat(dataset...)'

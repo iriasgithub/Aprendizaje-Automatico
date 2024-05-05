@@ -37,10 +37,11 @@ inputs = convert(Array{Float32, 2}, inputs)
 topology = [16, 8, 4]
 modelHypANN = Dict()
 modelHypANN["topology"] = topology
+modelHypANN["numExecutions"] = 10
 
 modelCrossValidation(:ANN, modelHypANN, inputs, targets, crossvalidation(targets, 10))
 
-
+#=
 modelHypSVC = Dict()
 modelHypSVC["C"] = 1.0
 modelHypSVC["kernel"] = "rbf"
@@ -61,4 +62,4 @@ modelHypKNN = Dict()
 modelHypKNN["n_neighbors"] = 3
 
 modelCrossValidation(:KNeighborsClassifier, modelHypKNN, inputs, targets, crossvalidation(targets, 10))
-
+=#

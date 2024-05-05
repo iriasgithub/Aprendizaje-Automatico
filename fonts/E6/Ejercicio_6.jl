@@ -37,15 +37,16 @@ function modelCrossValidation(modelType::Symbol, modelHyperparameters::Dict,
         args["targets"] = targets   
         args["crossValidationIndices"] = crossValidationIndices
         #Asignación de los campos opcionales
-        #numExecutions = haskey(modelHyperparameters, "numExecutions") ? args["numExecutions"] = modelHyperparameters["numExecutions"] : args["numExecutions"] = 50
-        #transferFunctions = haskey(modelHyperparameters, "transferFunctions") ? args["transferFunctions"] = modelHyperparameters["transferFunctions"] : args["transferFunctions"] = fill(σ, length(topology))
-        #maxEpochs = haskey(modelHyperparameters, "maxEpochs") ? args["maxEpochs"] =  modelHyperparameters["maxEpochs"] : args["maxEpochs"] = 1000
-        #minLoss = haskey(modelHyperparameters, "minLoss") ? args["minLoss"] = modelHyperparameters["minLoss"] : args["minLoss"] = 0.0
-        #learningRate = haskey(modelHyperparameters, "learningRate") ? args["learningRate"] = modelHyperparameters["learningRate"] : args["learningRate"] = 0.01
-        #validationRatio = haskey(modelHyperparameters, "validationRatio") ? args["validationRatio"] = modelHyperparameters["validationRatio"] : args["validationRatio"] = 0
-        #maxEpochsVal = haskey(modelHyperparameters, "maxEpochsVal") ? args["maxEpochsVal"] = modelHyperparameters["maxEpochsVal"] : args["maxEpochsVal"] = 20
+        haskey(modelHyperparameters, "numExecutions") ? args["numExecutions"] = modelHyperparameters["numExecutions"] : args["numExecutions"] = 50
+        haskey(modelHyperparameters, "transferFunctions") ? args["transferFunctions"] = modelHyperparameters["transferFunctions"] : args["transferFunctions"] = fill(σ, length(topology))
+        haskey(modelHyperparameters, "maxEpochs") ? args["maxEpochs"] =  modelHyperparameters["maxEpochs"] : args["maxEpochs"] = 1000
+        haskey(modelHyperparameters, "minLoss") ? args["minLoss"] = modelHyperparameters["minLoss"] : args["minLoss"] = 0.0
+        haskey(modelHyperparameters, "learningRate") ? args["learningRate"] = modelHyperparameters["learningRate"] : args["learningRate"] = 0.01
+        haskey(modelHyperparameters, "validationRatio") ? args["validationRatio"] = modelHyperparameters["validationRatio"] : args["validationRatio"] = 0
+        haskey(modelHyperparameters, "maxEpochsVal") ? args["maxEpochsVal"] = modelHyperparameters["maxEpochsVal"] : args["maxEpochsVal"] = 20
 
-        return ANNCrossValidation(args["topology"], args["inputs"], args["targets"], args["crossValidationIndices"])
+        return ANNCrossValidation(args["topology"], args["inputs"], args["targets"], args["crossValidationIndices"],
+                args["numExecutions"], args["transferFunctions"], args["maxEpochs"], args["minLoss"], args["learningRate"], args["validationRatio"], args["maxEpochsVal"])
 
     else
         #Cálculo del n de folds que se desea hacer (se hacen k experimentos y k subconjuntos)

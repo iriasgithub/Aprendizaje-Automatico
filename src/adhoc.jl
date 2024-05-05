@@ -94,8 +94,6 @@ function crear_inputs_targets_multiclase(clase1::Vector{Matrix{Float64}}, clase2
     return inputs, targets
 end
 
-
-
 #Función para crear el bounding box de una imagen 
 #image: imagen a crear el bounding box
 #name: nombre con el que se guardará la imagen en la carpeta

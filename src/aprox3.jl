@@ -36,7 +36,6 @@ datos_clase_1 = dataset[targets .== 1, :]
 scatter(datos_clase_0[:, 4], datos_clase_0[:, 2], xlabel = "Color", ylabel = "Asimetría", color=:green, label="No melanoma")
 scatter!(datos_clase_1[:, 4], datos_clase_1[:, 2], xlabel = "Color", ylabel = "Asimetría", color=:red, label="Melanoma")
 
-
 ########################################################################################################################
 
 #Ejecución de SVM

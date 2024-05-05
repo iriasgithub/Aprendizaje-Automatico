@@ -1,4 +1,5 @@
 using Flux
+using Plots
 using Flux.Losses
 using Flux: onehotbatch, onecold, adjust!
 using JLD2, FileIO
@@ -137,7 +138,7 @@ function train(ann)
         if (precisionEntrenamiento >= 0.999)
             println("   Se para el entenamiento por haber llegado a un F1 de 99.9%")
             criterioFin = true;
-            return precisionTest
+            return precisionTest, precisionEntrenamiento
         end
     
         # Si no se mejora la precision en el conjunto de entrenamiento durante 10 ciclos, se para el entrenamiento
@@ -146,13 +147,25 @@ function train(ann)
             println("   Se para el entrenamiento por no haber mejorado el F1 en el conjunto de entrenamiento durante 20 ciclos con un F1 en test de ", 100*precisionTest, " % y en
             entrenamiento de ", 100*precisionEntrenamiento, " %")
             criterioFin = true;
-            return precisionTest
+            return precisionTest, precisionEntrenamiento
         end
         
     end
     
 end
 
-results = [train(ann) for ann in arquitecturas]
+f1_score_test = []
+f1_score_training = []
 
-println(results)
+for ann in arquitecturas
+    result = train(ann)
+    push!(f1_score_test, result[1])
+    push!(f1_score_training, result[2])
+end
+
+println(f1_score_test)
+println(f1_score_training)
+
+x = 1:length(arquitecturas)
+
+bar(x, [f1_score_test f1_score_training], label=["F1 Score Test" "F1 Score Training"], xlabel="Arquitectura", ylabel="F1 Score", title="Comparación F1 Score en Conjunto de Test y Training", xticks=(1:length(arquitecturas)))
